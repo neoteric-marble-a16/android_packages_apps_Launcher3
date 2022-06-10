@@ -46,6 +46,8 @@ import android.app.PendingIntent;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.hardware.display.DisplayManager;
@@ -74,6 +76,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
@@ -113,7 +116,7 @@ import java.util.StringJoiner;
 /**
  * Class to manage taskbar lifecycle
  */
-public class TaskbarManager implements DisplayDecorationListener {
+public class TaskbarManager implements DisplayDecorationListener, OnSharedPreferenceChangeListener {
     private static final String TAG = "TaskbarManager";
     private static final boolean DEBUG = false;
     private static final int TASKBAR_DESTROY_DURATION = 100;
@@ -142,9 +145,6 @@ public class TaskbarManager implements DisplayDecorationListener {
 
     private static final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
             Settings.Secure.NAV_BAR_KIDS_MODE);
-
-    private static final Uri ENABLE_TASKBAR_URI = Settings.System.getUriFor(
-            Settings.System.ENABLE_TASKBAR);
 
     public static final Uri NAV_BAR_INVERSE = Settings.Secure.getUriFor(
             "sysui_nav_bar_inverse");
@@ -487,8 +487,6 @@ public class TaskbarManager implements DisplayDecorationListener {
             // Restart launcher
             System.exit(0);
         };
-        SettingsCache.INSTANCE.get(mBaseContext)
-                .register(ENABLE_TASKBAR_URI, mEnableTaskBarListener);
         SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
                 .registerDisplayDecorationListener(this);
         mShutdownReceiver =
@@ -530,6 +528,19 @@ public class TaskbarManager implements DisplayDecorationListener {
         }
         recreateTaskbars();
         debugPrimaryTaskbar("TaskbarManager created");
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        switch (key) {
+            case DeviceProfile.KEY_PHONE_TASKBAR:
+                boolean enabled = LauncherPrefs.getPrefs(mBaseContext).getBoolean(DeviceProfile.KEY_PHONE_TASKBAR, false);
+                SystemUiProxy.INSTANCE.get(mBaseContext).setTaskbarEnabled(enabled);
+
+                Settings.System.putInt(mBaseContext.getContentResolver(),
+                        Settings.System.ENABLE_TASKBAR, enabled ? 1 : 0);
+                break;
+        }
     }
 
     private void handleDisplayUpdatesForPerceptibleTasks() {
@@ -641,6 +652,8 @@ public class TaskbarManager implements DisplayDecorationListener {
         mUserUnlocked = true;
         DisplayController.INSTANCE.get(mPrimaryWindowContext).addChangeListener(
                 mRecreationListener);
+        SharedPreferences prefs = LauncherPrefs.getPrefs(mBaseContext);
+        prefs.registerOnSharedPreferenceChangeListener(this);
         debugPrimaryTaskbar("onUserUnlocked: recreating all taskbars!");
         recreateTaskbars();
         for (int i = 0; i < mTaskbars.size(); i++) {
