@@ -27,6 +27,7 @@
     <string name="interface_category_title">Interface</string>
     <string name="search_bar_category_title">Search bar</string>
     <string name="quickspace_category_title">At A Glance</string>
+    <string name="actions_category_title">Quick actions</string>
 
     <!-- Developer options -->
     <string name="dev_options_title">Developer options</string>
@@ -97,6 +98,11 @@
     <!-- DT2S -->
     <string name="pref_sleep_gesture_title">Double tap to sleep</string>
     <string name="pref_sleep_gesture_summary">Double tap on empty space for screen off</string>
+
+    <!-- Recents icons -->
+    <string name="recents_screenshot_title">Screenshot</string>
+    <string name="recents_clear_all_title">Clear all</string>
+    <string name="recents_lens_title">Lens</string>
 
     <!-- App drawer searchbar -->
     <string name="drawer_search_title">App search bar</string>
