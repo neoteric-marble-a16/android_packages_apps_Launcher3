@@ -138,6 +138,14 @@
             android:defaultValue="true"
             launcher:iconSpaceReserved="false" />
 
+        <SwitchPreference
+            android:key="pref_dock_music_search"
+            android:title="@string/dock_music_search_title"
+            android:summary="@string/dock_music_search_summary"
+            android:defaultValue="true"
+            android:persistent="true"
+            android:dependency="pref_dock_search" />
+
     </PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

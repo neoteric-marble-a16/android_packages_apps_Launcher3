@@ -33,7 +33,6 @@ import androidx.core.view.WindowCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference.OnPreferenceChangeListener;
 
-import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
