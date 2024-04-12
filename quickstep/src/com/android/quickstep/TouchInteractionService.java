@@ -694,7 +694,11 @@ public class TouchInteractionService extends Service {
                 mOverviewComponentObserver, mRecentsDisplayModel,
                 systemUiProxy.getFocusState(), mTaskbarManager, systemUiProxy);
         mUserUnlocked = true;
-        mInputConsumer.registerInputConsumer();
+        try {
+            mInputConsumer.registerInputConsumer();
+        } catch (Exception e) {
+            Log.e(TAG, "Failure registering InputConsumer", e);
+        }
         for (int displayId : mDeviceState.getDisplaysWithSysUIState()) {
             onSystemUiFlagsChanged(mDeviceState.getSystemUiStateFlags(displayId), displayId);
         }
