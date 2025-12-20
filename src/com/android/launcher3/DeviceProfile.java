@@ -57,6 +57,7 @@ import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.folder.ClippedFolderIconLayoutRule;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.responsive.CalculatedCellSpec;
 import com.android.launcher3.responsive.CalculatedHotseatSpec;
@@ -324,9 +325,7 @@ public class DeviceProfile {
     public int flingToDeleteThresholdVelocity;
 
     // Meminfo in overview
-    public int memInfoMarginGesturePx;
-    public int memInfoMarginTransientTaskbarPx;
-    public int memInfoMarginThreeButtonPx;
+    public int memInfoHeight;
 
     /** Used only as an alternative to mocking when null values cannot be used. */
     @VisibleForTesting
@@ -394,8 +393,7 @@ public class DeviceProfile {
         mTransientTaskbarClaimedSpace = 0;
         startAlignTaskbar = false;
         isTransientTaskbar = false;
-        memInfoMarginGesturePx = 0;
-        memInfoMarginThreeButtonPx = 0;
+        memInfoHeight = 0;
     }
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
@@ -819,12 +817,7 @@ public class DeviceProfile {
             isLeftRightSplit = isLandscape;
         }
 
-        memInfoMarginGesturePx = res.getDimensionPixelSize(
-                R.dimen.meminfo_bottom_margin_gesture);
-        memInfoMarginTransientTaskbarPx = res.getDimensionPixelSize(
-                R.dimen.meminfo_bottom_margin_transient_taskbar);
-        memInfoMarginThreeButtonPx = res.getDimensionPixelSize(
-                R.dimen.meminfo_bottom_margin_three_button);
+        memInfoHeight = res.getDimensionPixelSize(R.dimen.meminfo_claimed_height);
 
         // Calculate all of the remaining variables.
         extraSpace = updateAvailableDimensions(context);
@@ -2155,7 +2148,7 @@ public class DeviceProfile {
         int overviewActionsSpace = isTablet && Flags.enableGridOnlyOverview()
                 ? 0
                 : (overviewActionsTopMarginPx + overviewActionsHeight);
-        return overviewActionsSpace + getOverviewActionsClaimedSpaceBelow();
+        return overviewActionsSpace + memInfoHeight + getOverviewActionsClaimedSpaceBelow();
     }
 
     /**
