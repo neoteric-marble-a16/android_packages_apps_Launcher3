@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.content.SharedPreferences;
+import android.graphics.drawable.PaintDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -19,6 +21,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.qsb.QsbContainerView;
 import com.android.launcher3.util.MultiTranslateDelegate;
+import com.android.launcher3.util.Themes;
 import com.android.launcher3.LauncherPrefs;
 
 public class QsbLayout extends FrameLayout implements Reorderable,
@@ -29,6 +32,7 @@ public class QsbLayout extends FrameLayout implements Reorderable,
     ImageView mLensIcon;
     Context mContext;
     ThemeManager mThemeManager;
+    private FrameLayout mInner;
 
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
     private float mScaleForReorderBounce = 1f;
@@ -51,7 +55,10 @@ public class QsbLayout extends FrameLayout implements Reorderable,
         mAssistantIcon = findViewById(R.id.mic_icon);
         mGoogleIcon = findViewById(R.id.g_icon);
         mLensIcon = findViewById(R.id.lens_icon);
+        mInner = findViewById(R.id.inner);
         setIcons();
+        setUpBackground();
+        clipIconRipples();
 
         LauncherPrefs.getPrefs(mContext).registerOnSharedPreferenceChangeListener(this);
 
@@ -85,6 +92,7 @@ public class QsbLayout extends FrameLayout implements Reorderable,
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (key.equals(ThemeManager.KEY_THEMED_ICONS)) {
             setIcons();
+            setUpBackground();
         }
     }
 
@@ -114,6 +122,47 @@ public class QsbLayout extends FrameLayout implements Reorderable,
                     .putExtra("lens_activity_params", bundle);
             mContext.startActivity(lensIntent);
         });
+    }
+
+    private float getCornerRadius() {
+        Resources res = mContext.getResources();
+        float qsbWidgetHeight = res.getDimension(R.dimen.qsb_widget_height);
+        float qsbWidgetPadding = res.getDimension(R.dimen.qsb_widget_vertical_padding);
+        float innerHeight = qsbWidgetHeight - 2 * qsbWidgetPadding;
+        return innerHeight / 2;
+    }
+
+    private void clipIconRipples() {
+        float cornerRadius = getCornerRadius();
+        // Create a rounded outline provider for clipping ripples
+        mAssistantIcon.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
+            }
+        });
+        mAssistantIcon.setClipToOutline(true);
+
+        mLensIcon.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
+            }
+        });
+        mLensIcon.setClipToOutline(true);
+    }
+
+    private void setUpBackground() {
+        if (mInner == null) return;
+        float cornerRadius = getCornerRadius();
+        int color = Themes.getAttrColor(mContext, R.attr.qsbFillColor);
+        if (mThemeManager.isMonoThemeEnabled()) {
+            color = Themes.getAttrColor(mContext, R.attr.qsbFillColorThemed);
+        }
+        PaintDrawable pd = new PaintDrawable(color);
+        pd.setCornerRadius(cornerRadius);
+        mInner.setClipToOutline(cornerRadius > 0);
+        mInner.setBackground(pd);
     }
 
     @Override

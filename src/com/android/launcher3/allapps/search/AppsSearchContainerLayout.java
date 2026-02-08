@@ -24,6 +24,7 @@ import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTO
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.text.Selection;
 import android.text.SpannableStringBuilder;
 import android.text.method.TextKeyListener;
@@ -36,10 +37,12 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.allapps.AllAppsStore;
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem;
 import com.android.launcher3.allapps.SearchUiManager;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.search.SearchCallback;
 import com.android.launcher3.views.ActivityContext;
 
@@ -55,6 +58,7 @@ public class AppsSearchContainerLayout extends ExtendedEditText
     private final ActivityContext mLauncher;
     private final AllAppsSearchBarController mSearchBarController;
     private final SpannableStringBuilder mSearchQueryBuilder;
+    private final ThemeManager mThemeManager;
 
     private ActivityAllAppsContainerView<?> mAppsView;
 
@@ -74,6 +78,7 @@ public class AppsSearchContainerLayout extends ExtendedEditText
 
         mLauncher = ActivityContext.lookupContext(context);
         mSearchBarController = new AllAppsSearchBarController();
+        mThemeManager = ThemeManager.INSTANCE.get(context);
 
         mSearchQueryBuilder = new SpannableStringBuilder();
         Selection.setSelection(mSearchQueryBuilder, 0);
@@ -125,7 +130,33 @@ public class AppsSearchContainerLayout extends ExtendedEditText
         int shift = expectedLeft - left;
         setTranslationX(shift);
 
+        // Update search icon and background based on theme and GSA availability
+        updateSearchAppearance();
+
         offsetTopAndBottom(mContentOverlap);
+    }
+
+    private void updateSearchAppearance() {
+        Context context = getContext();
+        boolean isGSAEnabled = Utilities.isGSAEnabled(context);
+        boolean isThemedIcons = mThemeManager.isMonoThemeEnabled();
+
+        // Update search icon - use Google icon if GSA is available
+        Drawable icon;
+        if (isGSAEnabled) {
+            icon = context.getDrawable(isThemedIcons ?
+                    R.drawable.ic_super_g_themed : R.drawable.ic_super_g_color);
+        } else {
+            icon = context.getDrawable(R.drawable.ic_allapps_search);
+        }
+        setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null);
+
+        // Update background based on theme
+        if (isGSAEnabled) {
+            setBackgroundResource(isThemedIcons ?
+                    R.drawable.bg_all_apps_searchbox_google_themed :
+                    R.drawable.bg_all_apps_searchbox_google);
+        }
     }
 
     @Override
